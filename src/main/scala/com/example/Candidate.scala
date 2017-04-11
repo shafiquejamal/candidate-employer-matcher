@@ -1,7 +1,11 @@
 package com.example
 
 
-case class Candidate(override val id: Int, preferences: Vector[Int]) extends Party
+case class Candidate(
+    override val id: Int,
+    override val preferences: Vector[Int]) extends Party {
+  require(preferences.distinct.length == preferences.length)
+}
 
 object Candidate {
 

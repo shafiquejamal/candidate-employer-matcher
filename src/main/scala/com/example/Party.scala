@@ -5,6 +5,9 @@ import scala.util.Random
 trait Party {
   
   def id: Int
+  def preferences: Vector[Int]
+  
+  require(preferences.distinct.length == preferences.length)
   
 }
 
