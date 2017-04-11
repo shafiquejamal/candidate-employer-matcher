@@ -2,9 +2,7 @@ package com.example
 
 import scala.util.Random
 
-case class SimulationResults(
-    choosers: Vector[Chooser],
-    positions: Vector[Employer])
+case class SimulationResults(candidates: Vector[Candidate], employers: Vector[Employer])
 
 object Main extends App {
 
@@ -13,13 +11,13 @@ object Main extends App {
   val NC = 3
   val NP = 3
 
-  val choosers: Vector[Chooser] = Chooser.create(NC, NP, 23L)
+  val candidates: Vector[Candidate] = Candidate.create(NC, NP, 23L)
   val employers: Vector[Employer] = Employer.create(NC, NP, 91L)
-
-  choosers.foreach(println)
+  
+  candidates.foreach(println)
   employers.foreach(println)
   
-  val results = PartyMatcher.matchParties(choosers, employers)
-  results.choosers.foreach(println)
+  val results = PartyMatcher.matchParties(candidates, employers)
+  results.candidates.foreach(println)
   
 }
