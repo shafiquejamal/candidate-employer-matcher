@@ -80,12 +80,6 @@ object PartyMatcher {
           idsOfUpdatedCandidates.contains(candidate.id)) ++ updatedCandidates)
         .sortWith(_.id < _.id)
       
-      println("<-------------------------------------------------------------->")
-      println("--------- all candidates ---------")
-      allCandidates.foreach(println)
-      println("--------- updated employers ---------")
-      updatedEmployers.foreach(println)
-      
       matchParties(allCandidates, updatedEmployers)
       
     }
