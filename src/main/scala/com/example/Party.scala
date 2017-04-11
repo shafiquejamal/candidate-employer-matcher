@@ -5,7 +5,6 @@ import scala.util.Random
 trait Party {
   
   def id: Int
-  def maybeMatch: Option[Int]
   
 }
 

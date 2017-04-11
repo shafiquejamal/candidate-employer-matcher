@@ -5,25 +5,40 @@ object PartyMatcher {
   def maybeUpdatedChooser(
       preference: Int,
       candidatesForThisPreference: Vector[Candidate],
-      chooser: Chooser): Option[Chooser] = {
+      chooser: Chooser): (Option[Chooser], Vector[Candidate]) = {
     
       val indicesOfCandidatesInChoosersPreferences =
         candidatesForThisPreference.map(candidate => chooser.preferences.indexOf(candidate.id))
       val lowestNonNegativeIndex = indicesOfCandidatesInChoosersPreferences.filter(_ > -1).min
       val indexOfLowestNonNegativeIndex = indicesOfCandidatesInChoosersPreferences.indexOf(lowestNonNegativeIndex)
-      val newMatchAmongCandidates = candidatesForThisPreference(indexOfLowestNonNegativeIndex).id
-      
-      val maybeIndexOfCurrentMatch =  chooser.maybeMatch.map { currentMatch => chooser.preferences.indexOf(currentMatch) }
+      val idOfNewMatchAmongCandidates = candidatesForThisPreference(indexOfLowestNonNegativeIndex).id
+      val newMatchAmongCandidates = candidatesForThisPreference.find(_.id == idOfNewMatchAmongCandidates).get
     
-      maybeIndexOfCurrentMatch.fold {
-        Some(chooser.copy(maybeMatch = Some(newMatchAmongCandidates)))
+      val maybeIndexOfCurrentMatch =
+        chooser.maybeMatch.map { currentMatch => chooser.preferences.indexOf(currentMatch.id) }
+    
+      val (maybeUpdatedChooser, rejectedCandidates) = maybeIndexOfCurrentMatch.fold {
+        val rejectedCandidates =
+          candidatesForThisPreference
+          .filterNot(_.id == idOfNewMatchAmongCandidates)
+          .map( candidate => candidate.copy(preferences = candidate.preferences.tail))
+        (Some(chooser.copy(maybeMatch = Some(newMatchAmongCandidates))), rejectedCandidates)
       } { indexOfCurrentMatch =>
         if ((indexOfCurrentMatch < lowestNonNegativeIndex) && (indexOfCurrentMatch > -1)) {
-          Some(chooser)
+          val rejectedCandidates =
+            candidatesForThisPreference
+            .map( candidate => candidate.copy(preferences = candidate.preferences.tail))
+          (Some(chooser), rejectedCandidates)
         } else {
-          Some(chooser.copy(maybeMatch = Some(newMatchAmongCandidates)))
+          val rejectedCandidates =
+            candidatesForThisPreference
+            .filterNot(_.id == idOfNewMatchAmongCandidates)
+            .map( candidate => candidate.copy(preferences = candidate.preferences.tail)) ++
+              chooser.maybeMatch.toVector.map(candidate => candidate.copy(preferences = candidate.preferences.tail))
+          (Some(chooser.copy(maybeMatch = Some(newMatchAmongCandidates))), rejectedCandidates)
         }
       }
+    (maybeUpdatedChooser, rejectedCandidates)
   }
   
   def matchParties(choosers: Vector[Chooser], candidates: Vector[Candidate]): SimulationResults = {
@@ -42,11 +57,11 @@ object PartyMatcher {
         .map { case (preference, candidatesForThisPreference) =>
           // if there is no matching candidate, return None
           //  Otherwise, update the choosers current match with its most preferred candidate
-          val updatedChoosers = choosers.find(_.id == preference).fold[Option[Chooser]]{None}{ chooser =>
+          val (updatedChoosers, rejectedCandidates) =
+            choosers.find(_.id == preference).fold[(Option[Chooser], Vector[Candidate])]{(None, candidatesForThisPreference)}{ chooser =>
             maybeUpdatedChooser(preference, candidatesForThisPreference, chooser)
         }
-        (updatedChoosers,
-          candidatesForThisPreference.map( candidate => candidate.copy(preferences = candidate.preferences.tail)) )
+        (updatedChoosers, rejectedCandidates)
       }.toVector
   
       val updatedCandidates =

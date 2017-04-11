@@ -1,6 +1,6 @@
 package com.example
 
-case class Chooser(override val id: Int, preferences: Vector[Int], override val maybeMatch: Option[Int]) extends Party
+case class Chooser(override val id: Int, preferences: Vector[Int], maybeMatch: Option[Candidate]) extends Party
 
 object Chooser {
 
