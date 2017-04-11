@@ -4,7 +4,7 @@ import scala.util.Random
 
 case class SimulationResults(
     choosers: Vector[Chooser],
-    positions: Vector[Candidate])
+    positions: Vector[Employer])
 
 object Main extends App {
 
@@ -13,13 +13,13 @@ object Main extends App {
   val NC = 3
   val NP = 3
 
-  val choosers: Vector[Chooser] = Chooser.createChoosers(NC, NP, 23L)
-  val candidates: Vector[Candidate] = Candidate.createCandidates(NC, NP, 91L)
+  val choosers: Vector[Chooser] = Chooser.create(NC, NP, 23L)
+  val employers: Vector[Employer] = Employer.create(NC, NP, 91L)
 
   choosers.foreach(println)
-  candidates.foreach(println)
+  employers.foreach(println)
   
-  val results = PartyMatcher.matchParties(choosers, candidates)
+  val results = PartyMatcher.matchParties(choosers, employers)
   results.choosers.foreach(println)
   
 }

@@ -3,73 +3,73 @@ package com.example
 object PartyMatcher {
   
   def maybeUpdatedChooser(
-      preference: Int,
-      candidatesForThisPreference: Vector[Candidate],
-      chooser: Chooser): (Option[Chooser], Vector[Candidate]) = {
+    preference: Int,
+    employersForThisPreference: Vector[Employer],
+    chooser: Chooser): (Option[Chooser], Vector[Employer]) = {
     
-      val indicesOfCandidatesInChoosersPreferences =
-        candidatesForThisPreference.map(candidate => chooser.preferences.indexOf(candidate.id))
-      val lowestNonNegativeIndex = indicesOfCandidatesInChoosersPreferences.filter(_ > -1).min
-      val indexOfLowestNonNegativeIndex = indicesOfCandidatesInChoosersPreferences.indexOf(lowestNonNegativeIndex)
-      val idOfNewMatchAmongCandidates = candidatesForThisPreference(indexOfLowestNonNegativeIndex).id
-      val newMatchAmongCandidates = candidatesForThisPreference.find(_.id == idOfNewMatchAmongCandidates).get
+      val indicesOfEmployersInChoosersPreferences =
+        employersForThisPreference.map(employer => chooser.preferences.indexOf(employer.id))
+      val lowestNonNegativeIndex = indicesOfEmployersInChoosersPreferences.filter(_ > -1).min
+      val indexOfLowestNonNegativeIndex = indicesOfEmployersInChoosersPreferences.indexOf(lowestNonNegativeIndex)
+      val idOfNewMatchAmongEmployers = employersForThisPreference(indexOfLowestNonNegativeIndex).id
+      val newMatchAmongEmployers = employersForThisPreference.find(_.id == idOfNewMatchAmongEmployers).get
     
       val maybeIndexOfCurrentMatch =
         chooser.maybeMatch.map { currentMatch => chooser.preferences.indexOf(currentMatch.id) }
     
-      val (maybeUpdatedChooser, rejectedCandidates) = maybeIndexOfCurrentMatch.fold {
-        val rejectedCandidates =
-          candidatesForThisPreference
-          .filterNot(_.id == idOfNewMatchAmongCandidates)
-          .map( candidate => candidate.copy(preferences = candidate.preferences.tail))
-        (Some(chooser.copy(maybeMatch = Some(newMatchAmongCandidates))), rejectedCandidates)
+      val (maybeUpdatedChooser, rejectedEmployers) = maybeIndexOfCurrentMatch.fold {
+        val rejectedEmployers =
+          employersForThisPreference
+          .filterNot(_.id == idOfNewMatchAmongEmployers)
+          .map( employer => employer.copy(preferences = employer.preferences.tail))
+        (Some(chooser.copy(maybeMatch = Some(newMatchAmongEmployers))), rejectedEmployers)
       } { indexOfCurrentMatch =>
         if ((indexOfCurrentMatch < lowestNonNegativeIndex) && (indexOfCurrentMatch > -1)) {
-          val rejectedCandidates =
-            candidatesForThisPreference
-            .map( candidate => candidate.copy(preferences = candidate.preferences.tail))
-          (Some(chooser), rejectedCandidates)
+          val rejectedEmployers =
+            employersForThisPreference
+            .map( employer => employer.copy(preferences = employer.preferences.tail))
+          (Some(chooser), rejectedEmployers)
         } else {
-          val rejectedCandidates =
-            candidatesForThisPreference
-            .filterNot(_.id == idOfNewMatchAmongCandidates)
-            .map( candidate => candidate.copy(preferences = candidate.preferences.tail)) ++
-              chooser.maybeMatch.toVector.map(candidate => candidate.copy(preferences = candidate.preferences.tail))
-          (Some(chooser.copy(maybeMatch = Some(newMatchAmongCandidates))), rejectedCandidates)
+          val rejectedEmployers =
+            employersForThisPreference
+            .filterNot(_.id == idOfNewMatchAmongEmployers)
+            .map( emplo => emplo.copy(preferences = emplo.preferences.tail)) ++
+              chooser.maybeMatch.toVector.map(employer => employer.copy(preferences = employer.preferences.tail))
+          (Some(chooser.copy(maybeMatch = Some(newMatchAmongEmployers))), rejectedEmployers)
         }
       }
-    (maybeUpdatedChooser, rejectedCandidates)
+    (maybeUpdatedChooser, rejectedEmployers)
   }
   
-  def matchParties(choosers: Vector[Chooser], candidates: Vector[Candidate]): SimulationResults = {
+  def matchParties(choosers: Vector[Chooser], employers: Vector[Employer]): SimulationResults = {
   
-    // If either all candidate preferences is empty or all choosers have been matched, then we are done.
+    // If either all employer preferences is empty or all choosers have been matched, then we are done.
     // A chooser can be taken out when it has been matched to its top choice. The corresponding position can be removed as well
-    if (candidates.isEmpty) {
-      SimulationResults(choosers.sortWith(_.id < _.id), candidates.sortWith(_.id < _.id))
+    if (employers.isEmpty) {
+      SimulationResults(choosers.sortWith(_.id < _.id), employers.sortWith(_.id < _.id))
     } else {
-      // consider only candidates who still have unexamined preferences
-      val remainingCandidates = candidates.filter(_.preferences.nonEmpty)
+      // consider only employers who still have unexamined preferences
+      val remainingEmployers = employers.filter(_.preferences.nonEmpty)
       
-      // group all candidates with preferences by their current top preference
-      // by group, for each candidate with this common preference, update the chooser
-      val updatedChoosersAndCandidates = remainingCandidates.groupBy(_.preferences.head)
-        .map { case (preference, candidatesForThisPreference) =>
-          // if there is no matching candidate, return None
-          //  Otherwise, update the choosers current match with its most preferred candidate
-          val (updatedChoosers, rejectedCandidates) =
-            choosers.find(_.id == preference).fold[(Option[Chooser], Vector[Candidate])]{(None, candidatesForThisPreference)}{ chooser =>
-            maybeUpdatedChooser(preference, candidatesForThisPreference, chooser)
+      // group all employers with preferences by their current top preference
+      // by group, for each employer with this common preference, update the chooser
+      val updatedChoosersAndEmployers = remainingEmployers.groupBy(_.preferences.head)
+        .map { case (preference, employersForThisPreference) =>
+          // if there is no matching employer, return None
+          //  Otherwise, update the choosers current match with its most preferred employer
+          val (updatedChoosers, rejectedEmployers) =
+            choosers.find(_.id == preference).fold[(Option[Chooser], Vector[Employer])]{(None, employersForThisPreference)}{ chooser =>
+            maybeUpdatedChooser(preference, employersForThisPreference, chooser)
         }
-        (updatedChoosers, rejectedCandidates)
+        (updatedChoosers, rejectedEmployers)
       }.toVector
   
-      val updatedCandidates =
-        updatedChoosersAndCandidates
-        .flatMap {  case (_, candidatesWithRemainingPreferences) => candidatesWithRemainingPreferences }
+      val updatedEmployers =
+        updatedChoosersAndEmployers
+        .flatMap {  case (_, employersWithRemainingPreferences) => employersWithRemainingPreferences }
         .sortWith(_.id < _.id)
       val updatedChoosers =
-        updatedChoosersAndCandidates
+        updatedChoosersAndEmployers
         .flatMap {  case (choosersWithUpdatedMatches, _) => choosersWithUpdatedMatches }
       
       val idsOfUpdatedChoosers = updatedChoosers.map(_.id)
@@ -79,10 +79,10 @@ object PartyMatcher {
       println("<-------------------------------------------------------------->")
       println("--------- all choosers ---------")
       allChoosers.foreach(println)
-      println("--------- updated candidates ---------")
-      updatedCandidates.foreach(println)
+      println("--------- updated employers ---------")
+      updatedEmployers.foreach(println)
       
-      matchParties(allChoosers, updatedCandidates)
+      matchParties(allChoosers, updatedEmployers)
       
     }
     
