@@ -50,5 +50,23 @@ class PartyMatcherUTest extends FlatSpecLike with ShouldMatchers {
     results.candidates should contain theSameElementsAs expected
   
   }
+  
+  it should "Return stable matches when employers offer multiple positions" in {
+    val candidate1 = Candidate(1, Vector(3, 1, 2), None)
+    val candidate2 = Candidate(2, Vector(1, 2, 3), None)
+    val candidate3 = Candidate(3, Vector(2, 1, 3), None)
+    val candidate4 = Candidate(4, Vector(2, 3, 1), None)
+    val candidate5 = Candidate(5, Vector(1, 3, 2), None)
+    val candidate6 = Candidate(6, Vector(3, 2, 1), None)
+    val employer1 = Employer(1, Vector(6, 1, 2, 4, 5), 3)
+    val employer2 = Employer(2, Vector(6, 5, 1, 4), 2)
+    val employer3 = Employer(3, Vector(4, 2, 1, 6), 1)
+    val candidates = Vector(candidate1, candidate2, candidate3, candidate4, candidate5, candidate6)
+    val employers = Vector(employer1, employer2, employer3)
+    
+    val results = PartyMatcher.matchParties(candidates, employers)
+    val expected = Vector(Some(3), Some(1), None, Some(2), Some(1), Some(2))
+    results.candidates.map(_.maybeMatch.map(_.id)) should contain theSameElementsInOrderAs expected
+  }
 
 }
