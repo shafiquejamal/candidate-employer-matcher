@@ -22,7 +22,11 @@ object PartyMatcher {
           employersForThisPreference
           .filterNot(_.id == idOfNewMatchAmongEmployers)
           .map( employer => employer.copy(preferences = employer.preferences.tail))
-        (Some(candidate.copy(maybeMatch = Some(newMatchAmongEmployers))), rejectedEmployers)
+        (Some(
+          candidate.copy(
+            maybeMatch =
+              Some(newMatchAmongEmployers.copy(
+                availablePositions = newMatchAmongEmployers.availablePositions - 1)))), rejectedEmployers)
       } { indexOfCurrentMatch =>
         if ((indexOfCurrentMatch < lowestNonNegativeIndex) && (indexOfCurrentMatch > -1)) {
           val rejectedEmployers =
@@ -33,9 +37,9 @@ object PartyMatcher {
           val rejectedEmployers =
             employersForThisPreference
             .filterNot(_.id == idOfNewMatchAmongEmployers)
-            .map( emplo => emplo.copy(preferences = emplo.preferences.tail)) ++
-            candidate.maybeMatch.toVector.map(employer => employer.copy(preferences = employer.preferences.tail))
-          (Some(candidate.copy(maybeMatch = Some(newMatchAmongEmployers))), rejectedEmployers)
+            .map( employer => employer.copy(preferences = employer.preferences.tail)) ++
+            candidate.maybeMatch.toVector.map(employer => employer.copy(preferences = employer.preferences.tail, availablePositions = employer.availablePositions + 1))
+          (Some(candidate.copy(maybeMatch = Some(newMatchAmongEmployers.copy(availablePositions = newMatchAmongEmployers.availablePositions - 1)))), rejectedEmployers)
         }
       }
     (maybeUpdatedCandidate, rejectedEmployers)

@@ -8,7 +8,7 @@ case class Employer(
     override val preferences: Vector[Int],
     availablePositions: Int) extends Party {
   require(preferences.distinct.length == preferences.length)
-  require(availablePositions > 0)
+  // require(availablePositions > 0)
 }
 
 object Employer {
