@@ -57,8 +57,12 @@ object PartyMatcher {
       
       // group all employers with preferences by their current top preference
       // by group, for each employer with this common preference, update the candidate
-      val updatedCandidatesAndEmployers = remainingEmployers.groupBy(_.preferences.head)
-        .map { case (preference, employersForThisPreference) =>
+      val updatedCandidatesAndEmployers = remainingEmployers
+        .map{ employer => (employer.preferences.take(employer.availablePositions), employer) }
+        .flatMap { case (preferencesToOffer, employer) => preferencesToOffer.map { preference => (preference, employer) }  }
+        .groupBy{ case (preference, _) => preference }
+        .map { case (preference, employersAndPreferenceForThisPreference) =>
+          val employersForThisPreference = employersAndPreferenceForThisPreference.map { case (_, employer) => employer }
           // if there is no matching employer, return None
           //  Otherwise, update the candidates current match with its most preferred employer
           val (updatedCandidates, rejectedEmployers) =
