@@ -17,15 +17,15 @@ class PartyMatcherUTest extends FlatSpecLike with ShouldMatchers {
     val candidateNoChange = Candidate(3, Vector(7, 6, 5, 2, 8), Some(employer6))
     val candidateChange = Candidate(3, Vector(7, 6, 8, 2, 5, 1), Some(employer1))
     
-    val (candidateNoPrevChoice, rejectedEmployers) = PartyMatcher.maybeUpdatedCandidate(preference, employers, candidateNoChoiceYet)
+    val (candidateNoPrevChoice, rejectedEmployers) = PartyMatcher.chooseMostPreferredOffer(employers, candidateNoChoiceYet)
     candidateNoPrevChoice should contain(candidateNoChoiceYet.copy(maybeMatch = Some(employer5.copy(availablePositions = 0))))
     val expectedRejectedEmployers = Vector(employer8.copy(preferences = employer8.preferences.tail))
     rejectedEmployers should contain theSameElementsAs expectedRejectedEmployers
     
-    val (candidateKeepExistingChoice, _) = PartyMatcher.maybeUpdatedCandidate(preference, employers, candidateNoChange)
+    val (candidateKeepExistingChoice, _) = PartyMatcher.chooseMostPreferredOffer(employers, candidateNoChange)
     candidateKeepExistingChoice should contain(candidateNoChange)
     
-    val (candidateWithExistingGetsUpdated, _) = PartyMatcher.maybeUpdatedCandidate(preference, employers, candidateChange)
+    val (candidateWithExistingGetsUpdated, _) = PartyMatcher.chooseMostPreferredOffer(employers, candidateChange)
     candidateWithExistingGetsUpdated should contain(candidateChange.copy(maybeMatch = Some(employer8.copy(availablePositions = 0))))
   }
   
@@ -51,7 +51,7 @@ class PartyMatcherUTest extends FlatSpecLike with ShouldMatchers {
   
   }
   
-  it should "Return stable matches when employers offer multiple positions" in {
+  it should "return stable matches when employers offer multiple positions" in {
     val candidate1 = Candidate(1, Vector(3, 1, 2), None)
     val candidate2 = Candidate(2, Vector(1, 2, 3), None)
     val candidate3 = Candidate(3, Vector(2, 1, 3), None)
@@ -69,4 +69,22 @@ class PartyMatcherUTest extends FlatSpecLike with ShouldMatchers {
     results.candidates.map(_.maybeMatch.map(_.id)) should contain theSameElementsInOrderAs expected
   }
 
+  it should "return stable matches when there are more employers and positions than candidates" in {
+  
+    val candidate1 = Candidate(1, Vector(3, 4, 2, 1), None)
+    val candidate2 = Candidate(2, Vector(3, 2, 5), None)
+    val candidate3 = Candidate(3, Vector(3, 2, 5, 1), None)
+    val employer1 = Employer(1, Vector(1, 2, 3), 3)
+    val employer2 = Employer(2, Vector(1, 3, 2), 1)
+    val employer3 = Employer(3, Vector(2, 1, 3), 1)
+    val employer4 = Employer(4, Vector(2, 1, 3), 2)
+    val employer5 = Employer(5, Vector(3, 2, 1), 2)
+    val candidates = Vector(candidate1, candidate2, candidate3)
+    val employers = Vector(employer1, employer2, employer3, employer4, employer5)
+    
+    val results = PartyMatcher.matchParties(candidates, employers)
+    val expected = Vector(Some(4), Some(3), Some(2))
+    results.candidates.map(_.maybeMatch.map(_.id)) should contain theSameElementsInOrderAs expected
+    
+  }
 }
