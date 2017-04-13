@@ -2,8 +2,6 @@ package com.example
 
 import scala.util.Random
 
-case class SimulationResults(candidates: Vector[Candidate], employers: Vector[Employer])
-
 object Main extends App {
 
   val rng = new Random(9798720938L)
