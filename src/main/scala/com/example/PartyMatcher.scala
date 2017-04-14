@@ -9,7 +9,12 @@ object PartyMatcher {
       val indicesOfEmployersInCandidatesPreferences =
         employersForThisPreference.map(employer => candidate.preferences.indexOf(employer.id))
       val listOfEmployersInThisCandidatesPreferences = indicesOfEmployersInCandidatesPreferences.filter(_ > -1)
-      if (listOfEmployersInThisCandidatesPreferences.nonEmpty) {
+    
+      if (listOfEmployersInThisCandidatesPreferences.isEmpty ||
+          candidate.maybeMatch.fold[Boolean](false){ currentMatch => currentMatch.id == candidate.preferences.head }) {
+        (Some(candidate),
+          employersForThisPreference.map { employer => employer.copy(preferences = employer.preferences.tail) })
+      } else {
         val lowestNonNegativeIndex = listOfEmployersInThisCandidatesPreferences.min
         val indexOfLowestNonNegativeIndex = indicesOfEmployersInCandidatesPreferences.indexOf(lowestNonNegativeIndex)
         val idOfNewMatchAmongEmployers = employersForThisPreference(indexOfLowestNonNegativeIndex).id
@@ -44,12 +49,7 @@ object PartyMatcher {
           }
         }
         (maybeUpdatedCandidate, rejectedEmployers)
-      } else {
-        (Some(candidate),
-          employersForThisPreference.map { employer => employer.copy(preferences = employer.preferences.tail) })
       }
-     
-      
   }
   
   def matchParties(candidates: Vector[Candidate], employers: Vector[Employer]): SimulationResults = {
